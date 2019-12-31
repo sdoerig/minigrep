@@ -1,6 +1,6 @@
 # minigrep
-Kind of minigrep in rust
-
+Kind of minigrep in Rust
+```
 Usage: ./minigrep -f FILE [options]
 
 Options:
@@ -13,4 +13,4 @@ Options:
                         regex pattern
     -e, --regex         interpret pattern as regular expression
     -h, --help          print this help menu
-
+```
