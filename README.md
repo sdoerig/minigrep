@@ -1,7 +1,8 @@
 # minigrep
-Kind of minigrep in Rust
+Kind of minigrep in Rust. Just for learing some Rust.
+
 ```
-Usage: ./minigrep -f FILE [options]
+Usage: target/debug/minigrep -f FILE [options]
 
 Options:
     -p, --pattern PATTERN
@@ -12,5 +13,6 @@ Options:
     -i, --insensitive   case insensitive matching - not valued in case of a
                         regex pattern
     -e, --regex         interpret pattern as regular expression
+    -n, --number        show line numbers of matches
     -h, --help          print this help menu
 ```

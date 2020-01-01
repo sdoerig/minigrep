@@ -24,6 +24,9 @@ pub fn get_config() -> Config {
         "insensitive", 
         "case insensitive matching - not valued in case of a regex pattern");
     opts.optflag("e", "regex", "interpret pattern as regular expression");
+    opts.optflag("n", 
+        "number", 
+        "show line numbers of matches");
     opts.optflag("h", "help", "print this help menu");
     
     let matches = match opts.parse(&args[1..]) {
@@ -32,7 +35,7 @@ pub fn get_config() -> Config {
             process::exit(2) }
     };
     
-    let  (mut case_sensitive, mut regex) = (true, false);
+    let  (mut case_sensitive, mut regex, mut show_line_number) = (true, false, false);
     if matches.opt_present("h") {
         print_usage(&program, &opts);
         process::exit(10)
@@ -46,9 +49,12 @@ pub fn get_config() -> Config {
     }
 
     if matches.opt_present("i") {
-        println!("setting case insentive == true");
         case_sensitive = false;
     }
+
+    if matches.opt_present("n") {
+        show_line_number = true;
+    } 
 
     if matches.opt_present("e") {
         regex = true;
@@ -81,7 +87,10 @@ pub fn get_config() -> Config {
         
     };
 
-    Config::new(pattern, file, case_sensitive, regex, do_substitution, subsitute).unwrap_or_else(|err| {
+    Config::new(pattern, file, 
+        case_sensitive, regex, 
+        do_substitution, subsitute, 
+        show_line_number).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
     })
