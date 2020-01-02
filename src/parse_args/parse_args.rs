@@ -14,7 +14,15 @@ pub fn get_config() -> Config {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
     let mandatory_params = vec!["f", "p"];
-    let mut do_substitution = false;
+    let (mut case_sensitive, 
+        mut regex, 
+        mut show_line_number, 
+        mut do_substitution,
+        mut recursiv) = (true, 
+            false, 
+            false, 
+            false,
+            false);
     let mut opts = Options::new();
     opts.optopt("p", "pattern", "set pattern to finde", "PATTERN");
     opts.optopt("s", "substitute", "subsitute pattern with this", "SUBSTITUTE");
@@ -27,6 +35,9 @@ pub fn get_config() -> Config {
     opts.optflag("n", 
         "number", 
         "show line numbers of matches");
+    opts.optflag("r", 
+        "recursiv", 
+        "search FILE recursiv");
     opts.optflag("h", "help", "print this help menu");
     
     let matches = match opts.parse(&args[1..]) {
@@ -35,7 +46,6 @@ pub fn get_config() -> Config {
             process::exit(2) }
     };
     
-    let  (mut case_sensitive, mut regex, mut show_line_number) = (true, false, false);
     if matches.opt_present("h") {
         print_usage(&program, &opts);
         process::exit(10)
@@ -58,6 +68,10 @@ pub fn get_config() -> Config {
 
     if matches.opt_present("e") {
         regex = true;
+    }
+
+    if matches.opt_present("r") {
+        recursiv = true;
     }
     
     
@@ -90,7 +104,7 @@ pub fn get_config() -> Config {
     Config::new(pattern, file, 
         case_sensitive, regex, 
         do_substitution, subsitute, 
-        show_line_number).unwrap_or_else(|err| {
+        show_line_number, recursiv).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
     })

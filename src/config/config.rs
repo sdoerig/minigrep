@@ -8,7 +8,8 @@ pub struct Config {
     pub is_subsitute: bool,
     pub substitute: String,
     pub regex: Regex, 
-    pub show_line_number: bool
+    pub show_line_number: bool,
+    pub recursiv: bool
 }
 
 impl Config {
@@ -18,14 +19,17 @@ impl Config {
         is_regex: bool, 
         is_subsitute: bool, 
         substitute: String,
-        show_line_number: bool) -> Result<Config, &'static str> {
+        show_line_number: bool,
+        recursiv: bool
+    ) -> Result<Config, &'static str> {
             let regex = Regex::new(&query_tmp).unwrap();
             let query = match case_sensitive {
                 true => {query_tmp},
                 false => {query_tmp.to_lowercase()}
             };
             Ok(Config { query , 
-                filename, case_sensitive, is_regex, is_subsitute, substitute, regex, show_line_number})
+                filename, case_sensitive, is_regex, 
+                is_subsitute, substitute, regex, show_line_number, recursiv})
         }
 
     pub fn set_case_sensitive(&mut self, case_sensitive: bool) {
@@ -49,7 +53,7 @@ mod tests {
         let config = Config::new(String::from("TeST"), 
             String::from("file"), 
             false, false, false, 
-            String::from(""), false).unwrap();
+            String::from(""), false, true).unwrap();
         assert_eq!(config.query, "test");
     }
 
@@ -58,7 +62,7 @@ mod tests {
         let config = Config::new(String::from("TeST"), 
             String::from("file"), 
             true, false, false, 
-            String::from(""), false).unwrap();
+            String::from(""), false, false).unwrap();
         assert_eq!(config.query, "TeST");
     }
 

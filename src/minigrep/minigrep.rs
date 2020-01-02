@@ -2,12 +2,29 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use crate::config::config::Config as Config;
+extern crate glob;
+
+use glob::glob;
 
 
 
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let file = File::open(&config.filename).unwrap();
+    if config.recursiv {
+        let glob_pattern = format!("**/{}", config.filename);
+        for entry in glob(&glob_pattern).expect("Failed to read glob pattern") {
+            let path = entry.unwrap();
+            open_file(&path.into_os_string().into_string().unwrap(), &config);
+        }
+        Ok(())
+    } else {
+        open_file(&config.filename, &config)
+    }
+    
+}
+
+fn open_file(filename: &String, config: &Config) -> Result<(), Box<dyn Error>>  {
+    let file = File::open(filename).unwrap();
     let reader = BufReader::new(file);
     type Search = fn(&Config, String) -> MatchedLine;
     type Output = fn(&MatchedLine, usize);
@@ -27,6 +44,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     } else if config.case_sensitive == false {
         search_ptr = search_case_insensitive;
     }
+    println!("{}:", filename);
     for (_index, line) in reader.lines().enumerate() {
         let line = line.unwrap();
         let matched = search_ptr(&config, line);
@@ -91,7 +109,7 @@ mod tests {
         let contents = String::from("safe, fast, productive.");
         let config = Config::new(String::from("duct"), 
             String::from("mey"), true, false, false, 
-            String::from(""), false).unwrap();
+            String::from(""), false, false).unwrap();
         assert_eq!(
             true,
             search(&config, contents).matched
@@ -103,7 +121,7 @@ mod tests {
         let contents = String::from("Rust:");
         let mut config = Config::new(String::from("rUsT"), 
             String::from("mey"), false, false, false, 
-            String::from(""), false).unwrap();
+            String::from(""), false, false).unwrap();
         config.query = String::from("rUsT");
         config.set_case_sensitive(false);
         assert_eq!(
@@ -117,7 +135,7 @@ mod tests {
     #[test]
     fn case_regex_by_line() {
         let config = Config::new(String::from("e{2}"), String::from("mey"), true, false, false, 
-            String::from("e{2}"), false).unwrap();
+            String::from("e{2}"), false, false).unwrap();
         let line = String::from("Pick three.");
         let matched_line = search_regex_by_line(&config, line);
 
@@ -127,7 +145,7 @@ mod tests {
     #[test]
     fn regex_example() {
         let config = Config::new(String::from("(?P<y>\\d{4})-(?P<m>\\d{2})-(?P<d>\\d{2})"), 
-            String::from("mey"), true, false, false, String::from("$m/$d/$y"), false).unwrap();
+            String::from("mey"), true, false, false, String::from("$m/$d/$y"), false, false).unwrap();
         let line = String::from("2012-03-14, 2013-01-01 and 2014-07-05");
         let after = replace_regex_by_line(&config, line);
         assert_eq!(after.line, "03/14/2012, 01/01/2013 and 07/05/2014");

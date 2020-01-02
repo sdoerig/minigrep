@@ -2,7 +2,7 @@
 Kind of minigrep in Rust. Just for learing some Rust.
 
 ```
-Usage: target/debug/minigrep -f FILE [options]
+Usage: ./minigrep -f FILE [options]
 
 Options:
     -p, --pattern PATTERN
@@ -14,5 +14,6 @@ Options:
                         regex pattern
     -e, --regex         interpret pattern as regular expression
     -n, --number        show line numbers of matches
+    -r, --recursiv      search FILE recursiv
     -h, --help          print this help menu
 ```
