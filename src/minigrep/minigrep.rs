@@ -3,7 +3,6 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use crate::config::config::Config as Config;
 extern crate glob;
-
 use glob::glob;
 
 
@@ -11,23 +10,27 @@ use glob::glob;
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     if config.recursiv {
-        let glob_pattern = format!("**/{}", config.filename);
+        let glob_pattern = format!("./**/{}", config.filename);
         for entry in glob(&glob_pattern).expect("Failed to read glob pattern") {
             let path = entry.unwrap();
-            open_file(&path.into_os_string().into_string().unwrap(), &config);
+            let filename = path.into_os_string().into_string().unwrap();
+            let _open_file_success = match open_file(&filename, &config) {
+                Ok(_ok) => true,
+                Err(_err) => false,
+            };
+            
         }
         Ok(())
     } else {
         open_file(&config.filename, &config)
     }
-    
 }
 
 fn open_file(filename: &String, config: &Config) -> Result<(), Box<dyn Error>>  {
-    let file = File::open(filename).unwrap();
+    let file = File::open(&filename)?;
     let reader = BufReader::new(file);
     type Search = fn(&Config, String) -> MatchedLine;
-    type Output = fn(&MatchedLine, usize);
+    type Output = fn(&String, &MatchedLine, usize);
     let mut search_ptr: Search = search;
     let mut output_ptr: Output = print_without_line_number;
     if config.show_line_number {
@@ -44,33 +47,28 @@ fn open_file(filename: &String, config: &Config) -> Result<(), Box<dyn Error>>  
     } else if config.case_sensitive == false {
         search_ptr = search_case_insensitive;
     }
-    println!("{}:", filename);
     for (_index, line) in reader.lines().enumerate() {
-        let line = line.unwrap();
+        let line = line?;
         let matched = search_ptr(&config, line);
-        output_ptr(&matched, _index);
+        output_ptr(&filename, &matched, _index);
     }
-    
     Ok(())
 }
-
-
-
 
 struct MatchedLine {
     matched: bool,
     line: String
 }
 
-fn print_with_line_number(matched: &MatchedLine, line_number: usize) {
+fn print_with_line_number(filename: &String, matched: &MatchedLine, line_number: usize) {
     if matched.matched {
-        println!("{}: {}", line_number + 1, matched.line);
+        println!("{} {}: {}", filename, line_number + 1, matched.line);
     }
 }
 
-fn print_without_line_number(matched: &MatchedLine, line_number: usize) {
+fn print_without_line_number(filename: &String, matched: &MatchedLine, line_number: usize) {
     if matched.matched {
-        println!("{}", matched.line);
+        println!("{}: {}", filename, matched.line);
     }
 }
 
@@ -87,16 +85,12 @@ fn replace_regex_by_line(config: &Config, line: String) -> MatchedLine {
     }
 }
 
-
-
 fn search(config: &Config, line: String) -> MatchedLine {
     MatchedLine{matched: line.contains(&config.query), line: line}
 }
 
 fn search_case_insensitive(config: &Config, line: String) -> MatchedLine {
     MatchedLine{matched: line.to_lowercase().contains(&config.query), line: line}
-
-
 }
 
 #[cfg(test)]
