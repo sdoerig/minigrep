@@ -1,6 +1,5 @@
 use regex::Regex;
 
-
 pub struct Config {
     pub query: String,
     pub filename: String,
@@ -11,21 +10,6 @@ pub struct Config {
     pub regex: Regex, 
     pub show_line_number: bool,
     pub recursiv: bool
-}
-
-impl Clone for Config {
-    fn clone(&self) -> Self {
-        Config{query: self.filename.clone(),
-        filename: self.filename.clone(),
-        case_sensitive: self.case_sensitive,
-        is_regex: self.is_regex,
-        is_subsitute: self.is_subsitute,
-        substitute: self.substitute.clone(),
-        regex: Regex::new(&self.query.clone()).unwrap(),
-        show_line_number: self.show_line_number,
-        recursiv: self.recursiv
-        }
-    }
 }
 
 impl Config {
@@ -83,3 +67,4 @@ mod tests {
     }
 
 }
+
