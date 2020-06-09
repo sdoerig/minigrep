@@ -66,7 +66,7 @@ fn print_with_line_number(filename: &String, matched: &MatchedLine, line_number:
     }
 }
 
-fn print_without_line_number(filename: &String, matched: &MatchedLine, line_number: usize) {
+fn print_without_line_number(filename: &String, matched: &MatchedLine, _line_number: usize) {
     if matched.matched {
         println!("{}: {}", filename, matched.line);
     }
