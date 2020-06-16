@@ -1,3 +1,5 @@
+![test_minigrep](https://github.com/sdoerig/minigrep/workflows/test_minigrep/badge.svg?branch=master&event=push)
+
 # minigrep
 Kind of minigrep in Rust. Just for learing some Rust.
 
