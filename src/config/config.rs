@@ -32,12 +32,12 @@ impl Config {
                 is_subsitute, substitute, regex, show_line_number, recursiv})
         }
 
-    pub fn set_case_sensitive(&mut self, case_sensitive: bool) {
-        if case_sensitive == false {
-            self.query = self.query.to_lowercase();
-        }
-        self.case_sensitive = case_sensitive;
-    }
+    //pub fn set_case_sensitive(&mut self, case_sensitive: bool) {
+    //    if case_sensitive == false {
+    //        self.query = self.query.to_lowercase();
+    //    }
+    //    self.case_sensitive = case_sensitive;
+    //}
 
         
 
