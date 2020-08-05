@@ -113,11 +113,11 @@ mod tests {
     #[test]
     fn case_insensitive() {
         let contents = String::from("Rust:");
-        let mut config = Config::new(String::from("rUsT"), 
+        let config = Config::new(String::from("rUsT"), 
             String::from("mey"), false, false, false, 
             String::from(""), false, false).unwrap();
-        config.query = String::from("rUsT");
-        config.set_case_sensitive(false);
+        //config.query = String::from("rUsT");
+        //config.set_case_sensitive(false);
         assert_eq!(
             true,
             search_case_insensitive(&config, contents).matched
