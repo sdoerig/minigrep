@@ -38,6 +38,10 @@ pub fn get_config() -> Config {
     opts.optflag("r", 
         "recursiv", 
         "search FILE recursiv");
+    opts.optflag("a", 
+        "fromline", 
+        "start matching at line number");
+    opts.optflag("z", "untilline", "end matching after line number");
     opts.optflag("h", "help", "print this help menu");
     
     let matches = match opts.parse(&args[1..]) {
@@ -74,8 +78,6 @@ pub fn get_config() -> Config {
         recursiv = true;
     }
     
-    
-    
     let pattern = match matches.opt_get("p") {
         Ok(m) => { m.unwrap() }
         Err(_f) => {print_usage(&program, &opts);
@@ -89,6 +91,17 @@ pub fn get_config() -> Config {
             process::exit(3)}
         
     };
+
+    let start_at: usize = match matches.opt_get("a") {
+        Ok(m) => { m.unwrap() }
+        Err(_f) => {0}
+    };
+
+    let end_at: usize = match matches.opt_get("z") {
+        Ok(m) => { m.unwrap() }
+        Err(_f) => {0}
+    };
+
 
     let mut subsitute = String::from("");
     if matches.opt_present("s") {
@@ -104,7 +117,8 @@ pub fn get_config() -> Config {
     Config::new(pattern, file, 
         case_sensitive, regex, 
         do_substitution, subsitute, 
-        show_line_number, recursiv).unwrap_or_else(|err| {
+        show_line_number, recursiv,
+        start_at, end_at).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
     })

@@ -103,7 +103,7 @@ mod tests {
         let contents = String::from("safe, fast, productive.");
         let config = Config::new(String::from("duct"), 
             String::from("mey"), true, false, false, 
-            String::from(""), false, false).unwrap();
+            String::from(""), false, false, 0,0).unwrap();
         assert_eq!(
             true,
             search(&config, contents).matched
@@ -115,9 +115,7 @@ mod tests {
         let contents = String::from("Rust:");
         let config = Config::new(String::from("rUsT"), 
             String::from("mey"), false, false, false, 
-            String::from(""), false, false).unwrap();
-        //config.query = String::from("rUsT");
-        //config.set_case_sensitive(false);
+            String::from(""), false, false, 0, 0).unwrap();
         assert_eq!(
             true,
             search_case_insensitive(&config, contents).matched
@@ -129,7 +127,7 @@ mod tests {
     #[test]
     fn case_regex_by_line() {
         let config = Config::new(String::from("e{2}"), String::from("mey"), true, false, false, 
-            String::from("e{2}"), false, false).unwrap();
+            String::from("e{2}"), false, false, 0, 0).unwrap();
         let line = String::from("Pick three.");
         let matched_line = search_regex_by_line(&config, line);
 
@@ -139,7 +137,7 @@ mod tests {
     #[test]
     fn regex_example() {
         let config = Config::new(String::from("(?P<y>\\d{4})-(?P<m>\\d{2})-(?P<d>\\d{2})"), 
-            String::from("mey"), true, false, false, String::from("$m/$d/$y"), false, false).unwrap();
+            String::from("mey"), true, false, false, String::from("$m/$d/$y"), false, false, 0, 0).unwrap();
         let line = String::from("2012-03-14, 2013-01-01 and 2014-07-05");
         let after = replace_regex_by_line(&config, line);
         assert_eq!(after.line, "03/14/2012, 01/01/2013 and 07/05/2014");
