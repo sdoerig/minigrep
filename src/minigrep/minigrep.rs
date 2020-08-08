@@ -8,7 +8,8 @@ use glob::glob;
 
 
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+pub fn run( config: Config) -> Result<(), Box<dyn Error>> {
+    
     if config.recursiv {
         let glob_pattern = format!("./**/{}", config.filename);
         for entry in glob(&glob_pattern).expect("Failed to read glob pattern") {
@@ -26,11 +27,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn open_file(filename: &String, config: &Config) -> Result<(), Box<dyn Error>>  {
+fn open_file(filename: &str, config: &Config) -> Result<(), Box<dyn Error>>  {
     let file = File::open(&filename)?;
     let reader = BufReader::new(file);
     type Search = fn(&Config, String) -> MatchedLine;
-    type Output = fn(&String, &MatchedLine, usize);
+    type Output = fn(&str, &MatchedLine, usize);
     let mut search_ptr: Search = search;
     let mut output_ptr: Output = print_without_line_number;
     if config.show_line_number {
@@ -44,14 +45,26 @@ fn open_file(filename: &String, config: &Config) -> Result<(), Box<dyn Error>>  
         } else {
             search_ptr = search_regex_by_line;
         }
-    } else if config.case_sensitive == false {
+    } else if !config.case_sensitive {
         search_ptr = search_case_insensitive;
     }
-    for (_index, line) in reader.lines().enumerate() {
-        let line = line?;
-        let matched = search_ptr(&config, line);
-        output_ptr(&filename, &matched, _index);
+    if config.start_matching_at > 0 || config.end_matching_after > 0 {
+        for (_index, line) in reader.lines().enumerate() {
+            if config.do_match(&_index) {
+                let line = line?;
+                let matched = search_ptr(&config, line);
+                output_ptr(&filename, &matched, _index);
+            }
+        }
+    } else {
+        for (_index, line) in reader.lines().enumerate() {
+            let line = line?;
+            let matched = search_ptr(&config, line);
+            output_ptr(&filename, &matched, _index);
+        }
+    
     }
+    
     Ok(())
 }
 
@@ -60,20 +73,20 @@ struct MatchedLine {
     line: String
 }
 
-fn print_with_line_number(filename: &String, matched: &MatchedLine, line_number: usize) {
+fn print_with_line_number(filename: &str, matched: &MatchedLine, line_number: usize) {
     if matched.matched {
         println!("{} {}: {}", filename, line_number + 1, matched.line);
     }
 }
 
-fn print_without_line_number(filename: &String, matched: &MatchedLine, _line_number: usize) {
+fn print_without_line_number(filename: &str, matched: &MatchedLine, _line_number: usize) {
     if matched.matched {
         println!("{}: {}", filename, matched.line);
     }
 }
 
 fn search_regex_by_line(config: &Config, line: String) -> MatchedLine {
-    MatchedLine{matched: config.regex.is_match(&line), line: line}
+    MatchedLine{matched: config.regex.is_match(&line), line}
 }
 
 fn replace_regex_by_line(config: &Config, line: String) -> MatchedLine {
@@ -81,16 +94,16 @@ fn replace_regex_by_line(config: &Config, line: String) -> MatchedLine {
         let line_modified = config.regex.replace_all(&line, config.substitute.as_str());
         MatchedLine{matched: true, line: line_modified.to_owned().to_string()}
     } else {
-        MatchedLine{matched: false, line: line}
+        MatchedLine{matched: false, line}
     }
 }
 
 fn search(config: &Config, line: String) -> MatchedLine {
-    MatchedLine{matched: line.contains(&config.query), line: line}
+    MatchedLine{matched: line.contains(&config.query), line}
 }
 
 fn search_case_insensitive(config: &Config, line: String) -> MatchedLine {
-    MatchedLine{matched: line.to_lowercase().contains(&config.query), line: line}
+    MatchedLine{matched: line.to_lowercase().contains(&config.query), line}
 }
 
 #[cfg(test)]
@@ -103,7 +116,7 @@ mod tests {
         let contents = String::from("safe, fast, productive.");
         let config = Config::new(String::from("duct"), 
             String::from("mey"), true, false, false, 
-            String::from(""), false, false).unwrap();
+            String::from(""), false, false, 0,0).unwrap();
         assert_eq!(
             true,
             search(&config, contents).matched
@@ -115,9 +128,7 @@ mod tests {
         let contents = String::from("Rust:");
         let config = Config::new(String::from("rUsT"), 
             String::from("mey"), false, false, false, 
-            String::from(""), false, false).unwrap();
-        //config.query = String::from("rUsT");
-        //config.set_case_sensitive(false);
+            String::from(""), false, false, 0, 0).unwrap();
         assert_eq!(
             true,
             search_case_insensitive(&config, contents).matched
@@ -129,7 +140,7 @@ mod tests {
     #[test]
     fn case_regex_by_line() {
         let config = Config::new(String::from("e{2}"), String::from("mey"), true, false, false, 
-            String::from("e{2}"), false, false).unwrap();
+            String::from("e{2}"), false, false, 0, 0).unwrap();
         let line = String::from("Pick three.");
         let matched_line = search_regex_by_line(&config, line);
 
@@ -139,7 +150,7 @@ mod tests {
     #[test]
     fn regex_example() {
         let config = Config::new(String::from("(?P<y>\\d{4})-(?P<m>\\d{2})-(?P<d>\\d{2})"), 
-            String::from("mey"), true, false, false, String::from("$m/$d/$y"), false, false).unwrap();
+            String::from("mey"), true, false, false, String::from("$m/$d/$y"), false, false, 0, 0).unwrap();
         let line = String::from("2012-03-14, 2013-01-01 and 2014-07-05");
         let after = replace_regex_by_line(&config, line);
         assert_eq!(after.line, "03/14/2012, 01/01/2013 and 07/05/2014");

@@ -24,7 +24,7 @@ pub fn get_config() -> Config {
             false,
             false);
     let mut opts = Options::new();
-    opts.optopt("p", "pattern", "set pattern to finde", "PATTERN");
+    opts.optopt("p", "pattern", "set pattern to find", "PATTERN");
     opts.optopt("s", "substitute", "subsitute pattern with this", "SUBSTITUTE");
     opts.optopt("f", "file", "file to search pattern in", "FILE");
 
@@ -38,6 +38,10 @@ pub fn get_config() -> Config {
     opts.optflag("r", 
         "recursiv", 
         "search FILE recursiv");
+    opts.optopt("a", 
+        "from", 
+        "start matching at line number", "START_AT_LINE_NUMBER");
+    opts.optopt("z", "until", "match as long as line number is smaller", "END_AT_LINE_NUMBER");
     opts.optflag("h", "help", "print this help menu");
     
     let matches = match opts.parse(&args[1..]) {
@@ -74,8 +78,6 @@ pub fn get_config() -> Config {
         recursiv = true;
     }
     
-    
-    
     let pattern = match matches.opt_get("p") {
         Ok(m) => { m.unwrap() }
         Err(_f) => {print_usage(&program, &opts);
@@ -89,6 +91,23 @@ pub fn get_config() -> Config {
             process::exit(3)}
         
     };
+
+    let mut start_at: usize = 0;
+    if matches.opt_present("a") {
+        start_at = match matches.opt_get("a") {
+            Ok(m) => { m.unwrap() }
+            Err(_f) => {0}
+        };
+    }
+
+    let mut end_at: usize = 0;
+    if matches.opt_present("z") {
+        end_at = match matches.opt_get("z") {
+            Ok(m) => { m.unwrap() }
+            Err(_f) => {0}
+        };
+    }
+
 
     let mut subsitute = String::from("");
     if matches.opt_present("s") {
@@ -104,7 +123,8 @@ pub fn get_config() -> Config {
     Config::new(pattern, file, 
         case_sensitive, regex, 
         do_substitution, subsitute, 
-        show_line_number, recursiv).unwrap_or_else(|err| {
+        show_line_number, recursiv,
+        start_at, end_at).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
     })
