@@ -44,21 +44,24 @@ impl Config {
                 end_matching_after})
         }
     
-    pub fn do_match(&self, line_counter: &usize) -> bool {
-        if (self.start_matching_at == 0 && self.end_matching_after == 0) || 
-           (self.start_matching_at > 0 && self.end_matching_after > 0 && 
-            self.start_matching_at <= *line_counter && *line_counter <= self.end_matching_after) || 
-            (self.start_matching_at > 0 && self.end_matching_after == 0 && *line_counter >= self.start_matching_at) || 
-            (self.start_matching_at == 0 && self.end_matching_after > 0 && *line_counter <= self.end_matching_after) {
-            true
-        } else {
-            false
+        pub fn do_match(&self, line_counter: &usize) -> bool {
+            if (self.start_matching_at == 0 && self.end_matching_after == 0) || 
+            (self.start_matching_at > 0 && self.end_matching_after > 0 && 
+                self.start_matching_at <= *line_counter && *line_counter < self.end_matching_after) || 
+                (self.start_matching_at > 0 && self.end_matching_after == 0 && *line_counter >= self.start_matching_at) || 
+                (self.start_matching_at == 0 && self.end_matching_after > 0 && *line_counter < self.end_matching_after) {
+                true
+            } else {
+                false
+            }
         }
+
+
     }
 
     
 
-}
+
 
 
 #[cfg(test)]
@@ -89,30 +92,55 @@ mod tests {
             String::from("file"), 
             true, false, false, 
             String::from(""), false, false, 3, 7).unwrap();
-        // would be line 1 
-        let check_cases = vec![ false, false, true, true, true, true, true, false];
-        //let mut line_counter: usize = 0;
+        // Expected results where as check_cases[0] stands for line one an so on
+        let check_cases = vec![ false, false, true, true, true, true, false, false];
         for (line_counter, result) in check_cases.into_iter().enumerate() {
             //println!("{}", line_counter);
-            
             assert_eq!(config.do_match(&(line_counter + 1)), result);
         }
-        // line 2
-        //assert_eq!(config.do_match(), false);
-        // line 3
-        //assert_eq!(config.do_match(), true);
-        // line 4
-        //assert_eq!(config.do_match(), true);
-        // line 5
-        //assert_eq!(config.do_match(), true);
-        // line 6
-        //assert_eq!(config.do_match(), true);
-        // line 7
-        //assert_eq!(config.do_match(), true);
-        // line 8
-        //assert_eq!(config.do_match(), false);
-
     }
-    
+    #[test]
+    fn test_case_do_match_start_set() {
+        let config = Config::new(String::from("TeST"), 
+            String::from("file"), 
+            true, false, false, 
+            String::from(""), false, false, 3, 0).unwrap();
+        // Expected results where as check_cases[0] stands for line one an so on
+        let check_cases = vec![ false, false, true, true, true, true, true, true];
+        for (line_counter, result) in check_cases.into_iter().enumerate() {
+            //println!("{}", line_counter);
+            assert_eq!(config.do_match(&(line_counter + 1)), result);
+        }
+    }
+
+    #[test]
+    fn test_case_do_match_start_greater_end() {
+        let config = Config::new(String::from("TeST"), 
+            String::from("file"), 
+            true, false, false, 
+            String::from(""), false, false, 4, 3).unwrap();
+        // Expected results where as check_cases[0] stands for line one an so on
+        let check_cases = vec![ false, false, false, false, false, false, false, false];
+        for (line_counter, result) in check_cases.into_iter().enumerate() {
+            //println!("{}", line_counter);
+            assert_eq!(config.do_match(&(line_counter + 1)), result);
+        }
+    }
+
+    #[test]
+    fn test_case_do_match_end_set() {
+        let config = Config::new(String::from("TeST"), 
+            String::from("file"), 
+            true, false, false, 
+            String::from(""), false, false, 0, 3).unwrap();
+        // Expected results where as check_cases[0] stands for line one an so on
+        let check_cases = vec![ true, true, false, false, false, false, false, false];
+        for (line_counter, result) in check_cases.into_iter().enumerate() {
+            //println!("{}", line_counter);
+            assert_eq!(config.do_match(&(line_counter + 1)), result);
+        }
+    }
+
+
 }
 

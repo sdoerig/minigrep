@@ -48,13 +48,21 @@ fn open_file(filename: &str, config: &Config) -> Result<(), Box<dyn Error>>  {
     } else if !config.case_sensitive {
         search_ptr = search_case_insensitive;
     }
-    
-    for (_index, line) in reader.lines().enumerate() {
-        if config.do_match(&_index) {
+    if config.start_matching_at > 0 || config.end_matching_after > 0 {
+        for (_index, line) in reader.lines().enumerate() {
+            if config.do_match(&_index) {
+                let line = line?;
+                let matched = search_ptr(&config, line);
+                output_ptr(&filename, &matched, _index);
+            }
+        }
+    } else {
+        for (_index, line) in reader.lines().enumerate() {
             let line = line?;
             let matched = search_ptr(&config, line);
             output_ptr(&filename, &matched, _index);
         }
+    
     }
     
     Ok(())
@@ -78,7 +86,7 @@ fn print_without_line_number(filename: &str, matched: &MatchedLine, _line_number
 }
 
 fn search_regex_by_line(config: &Config, line: String) -> MatchedLine {
-    MatchedLine{matched: config.regex.is_match(&line), line: line}
+    MatchedLine{matched: config.regex.is_match(&line), line}
 }
 
 fn replace_regex_by_line(config: &Config, line: String) -> MatchedLine {
@@ -86,16 +94,16 @@ fn replace_regex_by_line(config: &Config, line: String) -> MatchedLine {
         let line_modified = config.regex.replace_all(&line, config.substitute.as_str());
         MatchedLine{matched: true, line: line_modified.to_owned().to_string()}
     } else {
-        MatchedLine{matched: false, line: line}
+        MatchedLine{matched: false, line}
     }
 }
 
 fn search(config: &Config, line: String) -> MatchedLine {
-    MatchedLine{matched: line.contains(&config.query), line: line}
+    MatchedLine{matched: line.contains(&config.query), line}
 }
 
 fn search_case_insensitive(config: &Config, line: String) -> MatchedLine {
-    MatchedLine{matched: line.to_lowercase().contains(&config.query), line: line}
+    MatchedLine{matched: line.to_lowercase().contains(&config.query), line}
 }
 
 #[cfg(test)]

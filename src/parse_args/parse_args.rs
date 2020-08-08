@@ -24,7 +24,7 @@ pub fn get_config() -> Config {
             false,
             false);
     let mut opts = Options::new();
-    opts.optopt("p", "pattern", "set pattern to finde", "PATTERN");
+    opts.optopt("p", "pattern", "set pattern to find", "PATTERN");
     opts.optopt("s", "substitute", "subsitute pattern with this", "SUBSTITUTE");
     opts.optopt("f", "file", "file to search pattern in", "FILE");
 
@@ -38,10 +38,10 @@ pub fn get_config() -> Config {
     opts.optflag("r", 
         "recursiv", 
         "search FILE recursiv");
-    opts.optflag("a", 
-        "fromline", 
-        "start matching at line number");
-    opts.optflag("z", "untilline", "end matching after line number");
+    opts.optopt("a", 
+        "from", 
+        "start matching at line number", "START_AT_LINE_NUMBER");
+    opts.optopt("z", "until", "match as long as line number is smaller", "END_AT_LINE_NUMBER");
     opts.optflag("h", "help", "print this help menu");
     
     let matches = match opts.parse(&args[1..]) {
@@ -92,15 +92,21 @@ pub fn get_config() -> Config {
         
     };
 
-    let start_at: usize = match matches.opt_get("a") {
-        Ok(m) => { m.unwrap() }
-        Err(_f) => {0}
-    };
+    let mut start_at: usize = 0;
+    if matches.opt_present("a") {
+        start_at = match matches.opt_get("a") {
+            Ok(m) => { m.unwrap() }
+            Err(_f) => {0}
+        };
+    }
 
-    let end_at: usize = match matches.opt_get("z") {
-        Ok(m) => { m.unwrap() }
-        Err(_f) => {0}
-    };
+    let mut end_at: usize = 0;
+    if matches.opt_present("z") {
+        end_at = match matches.opt_get("z") {
+            Ok(m) => { m.unwrap() }
+            Err(_f) => {0}
+        };
+    }
 
 
     let mut subsitute = String::from("");

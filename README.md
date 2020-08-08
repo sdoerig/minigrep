@@ -6,7 +6,7 @@ Usage: ./minigrep -f FILE [options]
 
 Options:
     -p, --pattern PATTERN
-                        set pattern to finde
+                        set pattern to find
     -s, --substitute SUBSTITUTE
                         subsitute pattern with this
     -f, --file FILE     file to search pattern in
@@ -15,5 +15,7 @@ Options:
     -e, --regex         interpret pattern as regular expression
     -n, --number        show line numbers of matches
     -r, --recursiv      search FILE recursiv
+    -a, --from          start matching at line number
+    -z, --until         match as long as line number is smaller
     -h, --help          print this help menu
 ```
