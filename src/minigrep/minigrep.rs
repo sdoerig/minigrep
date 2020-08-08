@@ -8,7 +8,8 @@ use glob::glob;
 
 
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+pub fn run( config: Config) -> Result<(), Box<dyn Error>> {
+    
     if config.recursiv {
         let glob_pattern = format!("./**/{}", config.filename);
         for entry in glob(&glob_pattern).expect("Failed to read glob pattern") {
@@ -26,11 +27,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn open_file(filename: &String, config: &Config) -> Result<(), Box<dyn Error>>  {
+fn open_file(filename: &str, config: &Config) -> Result<(), Box<dyn Error>>  {
     let file = File::open(&filename)?;
     let reader = BufReader::new(file);
     type Search = fn(&Config, String) -> MatchedLine;
-    type Output = fn(&String, &MatchedLine, usize);
+    type Output = fn(&str, &MatchedLine, usize);
     let mut search_ptr: Search = search;
     let mut output_ptr: Output = print_without_line_number;
     if config.show_line_number {
@@ -44,14 +45,18 @@ fn open_file(filename: &String, config: &Config) -> Result<(), Box<dyn Error>>  
         } else {
             search_ptr = search_regex_by_line;
         }
-    } else if config.case_sensitive == false {
+    } else if !config.case_sensitive {
         search_ptr = search_case_insensitive;
     }
+    
     for (_index, line) in reader.lines().enumerate() {
-        let line = line?;
-        let matched = search_ptr(&config, line);
-        output_ptr(&filename, &matched, _index);
+        if config.do_match(&_index) {
+            let line = line?;
+            let matched = search_ptr(&config, line);
+            output_ptr(&filename, &matched, _index);
+        }
     }
+    
     Ok(())
 }
 
@@ -60,13 +65,13 @@ struct MatchedLine {
     line: String
 }
 
-fn print_with_line_number(filename: &String, matched: &MatchedLine, line_number: usize) {
+fn print_with_line_number(filename: &str, matched: &MatchedLine, line_number: usize) {
     if matched.matched {
         println!("{} {}: {}", filename, line_number + 1, matched.line);
     }
 }
 
-fn print_without_line_number(filename: &String, matched: &MatchedLine, _line_number: usize) {
+fn print_without_line_number(filename: &str, matched: &MatchedLine, _line_number: usize) {
     if matched.matched {
         println!("{}: {}", filename, matched.line);
     }
