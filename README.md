@@ -17,7 +17,9 @@ Options:
     -e, --regex         interpret pattern as regular expression
     -n, --number        show line numbers of matches
     -r, --recursiv      search FILE recursiv
-    -a, --from          start matching at line number
-    -z, --until         match as long as line number is smaller
+    -a, --from START_AT_LINE_NUMBER
+                        start matching at line number
+    -z, --until END_AT_LINE_NUMBER
+                        match as long as line number is smaller
     -h, --help          print this help menu
 ```
