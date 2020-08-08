@@ -43,6 +43,20 @@ impl Config {
                 start_matching_at, 
                 end_matching_after})
         }
+    
+    pub fn do_match(&self, line_counter: &usize) -> bool {
+        if (self.start_matching_at == 0 && self.end_matching_after == 0) || 
+           (self.start_matching_at > 0 && self.end_matching_after > 0 && 
+            self.start_matching_at <= *line_counter && *line_counter <= self.end_matching_after) || 
+            (self.start_matching_at > 0 && self.end_matching_after == 0 && *line_counter >= self.start_matching_at) || 
+            (self.start_matching_at == 0 && self.end_matching_after > 0 && *line_counter <= self.end_matching_after) {
+            true
+        } else {
+            false
+        }
+    }
+
+    
 
 }
 
@@ -69,5 +83,36 @@ mod tests {
         assert_eq!(config.query, "TeST");
     }
 
+    #[test]
+    fn test_case_do_match_start_and_end_set() {
+        let config = Config::new(String::from("TeST"), 
+            String::from("file"), 
+            true, false, false, 
+            String::from(""), false, false, 3, 7).unwrap();
+        // would be line 1 
+        let check_cases = vec![ false, false, true, true, true, true, true, false];
+        //let mut line_counter: usize = 0;
+        for (line_counter, result) in check_cases.into_iter().enumerate() {
+            //println!("{}", line_counter);
+            
+            assert_eq!(config.do_match(&(line_counter + 1)), result);
+        }
+        // line 2
+        //assert_eq!(config.do_match(), false);
+        // line 3
+        //assert_eq!(config.do_match(), true);
+        // line 4
+        //assert_eq!(config.do_match(), true);
+        // line 5
+        //assert_eq!(config.do_match(), true);
+        // line 6
+        //assert_eq!(config.do_match(), true);
+        // line 7
+        //assert_eq!(config.do_match(), true);
+        // line 8
+        //assert_eq!(config.do_match(), false);
+
+    }
+    
 }
 
