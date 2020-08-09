@@ -56,7 +56,7 @@ pub fn get_config() -> Config {
     }
 
     for mandatory_param in mandatory_params {
-        if matches.opt_present(mandatory_param) == false {
+        if !matches.opt_present(mandatory_param) {
             print_usage(&program, &opts);
             process::exit(2)
         }

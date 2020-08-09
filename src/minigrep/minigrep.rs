@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fs::File;
+use std::fmt;
 use std::io::{BufRead, BufReader};
 use crate::config::config::Config as Config;
 extern crate glob;
@@ -53,16 +54,17 @@ fn open_file(filename: &str, config: &Config) -> Result<(), Box<dyn Error>>  {
             if config.do_match(&_index) {
                 let line = line?;
                 let matched = search_ptr(&config, line);
-                output_ptr(&filename, &matched, _index);
+                let printable = PrintableWithFileNameLineNumber{filename: &filename, line_number: _index, matched};
+                print_line(&printable);
             }
         }
     } else {
         for (_index, line) in reader.lines().enumerate() {
             let line = line?;
             let matched = search_ptr(&config, line);
-            output_ptr(&filename, &matched, _index);
+            let printable = PrintableWithFileNameLineNumber{filename: &filename, line_number: _index, matched};
+            print_line(&printable);
         }
-    
     }
     
     Ok(())
@@ -72,6 +74,40 @@ struct MatchedLine {
     matched: bool,
     line: String
 }
+
+impl fmt::Display for MatchedLine {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.line)
+    }
+}
+
+struct PrintableWithFileNameLineNumber<'a>{
+    matched: MatchedLine,
+    filename: &'a str,
+    line_number: usize
+}
+pub trait Matched: fmt::Display {
+    fn matched(&self) -> bool;
+}
+
+impl Matched for PrintableWithFileNameLineNumber<'_> {
+    fn matched(&self) -> bool {
+        self.matched.matched    
+    }
+}
+
+impl fmt::Display for PrintableWithFileNameLineNumber<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}: {}", self.filename, self.line_number, self.matched)
+    }
+}
+
+fn print_line(line: &dyn Matched) {
+    if line.matched() {
+        println!("&dyn Matched {}", format!("{}", line));
+    }
+}
+
 
 fn print_with_line_number(filename: &str, matched: &MatchedLine, line_number: usize) {
     if matched.matched {
@@ -155,6 +191,15 @@ mod tests {
         let after = replace_regex_by_line(&config, line);
         assert_eq!(after.line, "03/14/2012, 01/01/2013 and 07/05/2014");
         println!("{}", after.line);
+    }
+
+    #[test]
+    fn printable_with_filename_and_linenumber() {
+        let matched = MatchedLine{matched: true, line: String::from("testLine")};
+        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), matched };
+        assert_eq!("fileName: 123: testLine",
+           format!("{}", pwfn));
+        print_line(&pwfn);
     }
 
 }
