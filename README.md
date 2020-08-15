@@ -3,6 +3,8 @@
 # minigrep
 Kind of minigrep in Rust. Just for learing some Rust.
 
+## Usage
+
 ```
 Usage: ./minigrep -f FILE [options]
 
@@ -23,3 +25,21 @@ Options:
                         match as long as line number is smaller
     -h, --help          print this help menu
 ```
+## Regex
+
+The Regex is bases on the library [regex](https://crates.io/crates/regex). This means the documented Rexex syntax can be uses. Example: given the file `test_regex.txt` has the content
+
+```
+2012-03-14, 2013-01-01 and 2014-07-05
+```
+the command
+```bash
+./minigrep -s '$m/$d/$y' \
+-p "(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})" \
+-e -f ~/grep_test.txt 
+```
+will print
+```
+03/14/2012, 01/01/2013 and 07/05/2014
+```
+
