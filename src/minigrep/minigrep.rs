@@ -1,8 +1,10 @@
 use std::error::Error;
 use std::fs::File;
-use std::fmt;
 use std::io::{BufRead, BufReader};
 use crate::config::config::Config as Config;
+use crate::structs::structs::PrintableWithFileNameLineNumber as PrintableWithFileNameLineNumber;
+use crate::structs::structs::MatchedLine as MatchedLine;
+use crate::structs::structs::Matched as Matched;
 extern crate glob;
 use glob::glob;
 
@@ -64,50 +66,6 @@ fn open_file(filename: &str, config: &Config) -> Result<(), Box<dyn Error>>  {
     }
     
     Ok(())
-}
-
-struct MatchedLine {
-    matched: bool,
-    line: String
-}
-
-impl fmt::Display for MatchedLine {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.line)
-    }
-}
-
-
-
-struct PrintableWithFileNameLineNumber<'a>{
-    matched: MatchedLine,
-    filename: &'a str,
-    line_number: usize,
-    show_line_number: bool,
-    show_file_name: bool
-}
-pub trait Matched: fmt::Display {
-    fn matched(&self) -> bool;
-}
-
-impl Matched for PrintableWithFileNameLineNumber<'_> {
-    fn matched(&self) -> bool {
-        self.matched.matched    
-    }
-}
-
-impl fmt::Display for PrintableWithFileNameLineNumber<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.show_file_name && self.show_line_number {
-            write!(f, "{}: {}: {}", self.filename, self.line_number, self.matched)
-        } else if !self.show_file_name && self.show_line_number {
-            write!(f, "{}: {}", self.line_number, self.matched)
-        } else if self.show_file_name && !self.show_line_number {
-            write!(f, "{}: {}", self.filename, self.matched)
-        } else {
-            write!(f, "{}", self.matched)
-        } 
-    }
 }
 
 fn print_line(line: &dyn Matched) {
@@ -187,40 +145,6 @@ mod tests {
         let after = replace_regex_by_line(&config, line);
         assert_eq!(after.line, "03/14/2012, 01/01/2013 and 07/05/2014");
         println!("{}", after.line);
-    }
-
-    #[test]
-    fn printable_with_filename_and_linenumber() {
-        let matched = MatchedLine{matched: true, line: String::from("testLine")};
-        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), show_line_number: true, show_file_name: true, matched };
-        assert_eq!("fileName: 123: testLine",
-           format!("{}", pwfn));
-        print_line(&pwfn);
-    }
-
-    #[test]
-    fn printable_linenumber() {
-        let matched = MatchedLine{matched: true, line: String::from("testLine")};
-        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), show_line_number: true, show_file_name: false, matched };
-        assert_eq!("123: testLine",
-           format!("{}", pwfn));
-        print_line(&pwfn);
-    }
-    #[test]
-    fn printable_filename() {
-        let matched = MatchedLine{matched: true, line: String::from("testLine")};
-        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), show_line_number: false, show_file_name: true, matched };
-        assert_eq!("fileName: testLine",
-           format!("{}", pwfn));
-        print_line(&pwfn);
-    }
-    #[test]
-    fn printable_line_only() {
-        let matched = MatchedLine{matched: true, line: String::from("testLine")};
-        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), show_line_number: false, show_file_name: false, matched };
-        assert_eq!("testLine",
-           format!("{}", pwfn));
-        print_line(&pwfn);
     }
 
 }
