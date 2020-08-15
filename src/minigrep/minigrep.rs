@@ -32,14 +32,8 @@ fn open_file(filename: &str, config: &Config) -> Result<(), Box<dyn Error>>  {
     let file = File::open(&filename)?;
     let reader = BufReader::new(file);
     type Search = fn(&Config, String) -> MatchedLine;
-    type Output = fn(&str, &MatchedLine, usize);
     let mut search_ptr: Search = search;
-    let mut output_ptr: Output = print_without_line_number;
-    if config.show_line_number {
-        output_ptr = print_with_line_number;        
-    } else {
-
-    }
+    
     if config.is_regex {
         if config.is_subsitute {
             search_ptr = replace_regex_by_line;
@@ -54,7 +48,8 @@ fn open_file(filename: &str, config: &Config) -> Result<(), Box<dyn Error>>  {
             if config.do_match(&_index) {
                 let line = line?;
                 let matched = search_ptr(&config, line);
-                let printable = PrintableWithFileNameLineNumber{filename: &filename, line_number: _index, matched};
+                let printable = PrintableWithFileNameLineNumber{filename: &filename, line_number: _index, matched, 
+                    show_line_number: config.show_line_number, show_file_name: config.recursiv};
                 print_line(&printable);
             }
         }
@@ -62,7 +57,8 @@ fn open_file(filename: &str, config: &Config) -> Result<(), Box<dyn Error>>  {
         for (_index, line) in reader.lines().enumerate() {
             let line = line?;
             let matched = search_ptr(&config, line);
-            let printable = PrintableWithFileNameLineNumber{filename: &filename, line_number: _index, matched};
+            let printable = PrintableWithFileNameLineNumber{filename: &filename, line_number: _index, matched,
+                show_line_number: config.show_line_number, show_file_name: config.recursiv};
             print_line(&printable);
         }
     }
@@ -81,10 +77,14 @@ impl fmt::Display for MatchedLine {
     }
 }
 
+
+
 struct PrintableWithFileNameLineNumber<'a>{
     matched: MatchedLine,
     filename: &'a str,
-    line_number: usize
+    line_number: usize,
+    show_line_number: bool,
+    show_file_name: bool
 }
 pub trait Matched: fmt::Display {
     fn matched(&self) -> bool;
@@ -98,28 +98,24 @@ impl Matched for PrintableWithFileNameLineNumber<'_> {
 
 impl fmt::Display for PrintableWithFileNameLineNumber<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}: {}: {}", self.filename, self.line_number, self.matched)
+        if self.show_file_name && self.show_line_number {
+            write!(f, "{}: {}: {}", self.filename, self.line_number, self.matched)
+        } else if !self.show_file_name && self.show_line_number {
+            write!(f, "{}: {}", self.line_number, self.matched)
+        } else if self.show_file_name && !self.show_line_number {
+            write!(f, "{}: {}", self.filename, self.matched)
+        } else {
+            write!(f, "{}", self.matched)
+        } 
     }
 }
 
 fn print_line(line: &dyn Matched) {
     if line.matched() {
-        println!("&dyn Matched {}", format!("{}", line));
+        println!("{}", line);
     }
 }
 
-
-fn print_with_line_number(filename: &str, matched: &MatchedLine, line_number: usize) {
-    if matched.matched {
-        println!("{} {}: {}", filename, line_number + 1, matched.line);
-    }
-}
-
-fn print_without_line_number(filename: &str, matched: &MatchedLine, _line_number: usize) {
-    if matched.matched {
-        println!("{}: {}", filename, matched.line);
-    }
-}
 
 fn search_regex_by_line(config: &Config, line: String) -> MatchedLine {
     MatchedLine{matched: config.regex.is_match(&line), line}
@@ -196,8 +192,33 @@ mod tests {
     #[test]
     fn printable_with_filename_and_linenumber() {
         let matched = MatchedLine{matched: true, line: String::from("testLine")};
-        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), matched };
+        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), show_line_number: true, show_file_name: true, matched };
         assert_eq!("fileName: 123: testLine",
+           format!("{}", pwfn));
+        print_line(&pwfn);
+    }
+
+    #[test]
+    fn printable_linenumber() {
+        let matched = MatchedLine{matched: true, line: String::from("testLine")};
+        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), show_line_number: true, show_file_name: false, matched };
+        assert_eq!("123: testLine",
+           format!("{}", pwfn));
+        print_line(&pwfn);
+    }
+    #[test]
+    fn printable_filename() {
+        let matched = MatchedLine{matched: true, line: String::from("testLine")};
+        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), show_line_number: false, show_file_name: true, matched };
+        assert_eq!("fileName: testLine",
+           format!("{}", pwfn));
+        print_line(&pwfn);
+    }
+    #[test]
+    fn printable_line_only() {
+        let matched = MatchedLine{matched: true, line: String::from("testLine")};
+        let pwfn = PrintableWithFileNameLineNumber{line_number: 123, filename: &String::from("fileName"), show_line_number: false, show_file_name: false, matched };
+        assert_eq!("testLine",
            format!("{}", pwfn));
         print_line(&pwfn);
     }
