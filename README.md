@@ -36,7 +36,7 @@ the command
 ```bash
 ./minigrep -s '$m/$d/$y' \
 -p "(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})" \
--e -f ~/grep_test.txt 
+-e -f ~/test_regex.txt 
 ```
 will print
 ```
