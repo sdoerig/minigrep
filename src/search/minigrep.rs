@@ -104,9 +104,15 @@ mod tests {
     fn one_result() {
         
         let contents = String::from("safe, fast, productive.");
-        let config = Config::new(String::from("duct"), 
-            String::from("mey"), true, false, false, 
-            String::from(""), false, false, 0,0).unwrap();
+        let mut config = Config::new(String::from("duct"), 
+            String::from("mey"), true).unwrap();
+        config.set_is_regex(false);
+        config.set_is_substitute(false); 
+        config.set_substitute(String::from(""));
+        config.set_show_line_number(false);
+        config.set_recursive(true);
+        config.set_start_matching_at(0);
+        config.set_end_matching_after(0);
         assert_eq!(
             true,
             search(&config, contents).matched
@@ -116,9 +122,15 @@ mod tests {
     #[test]
     fn case_insensitive() {
         let contents = String::from("Rust:");
-        let config = Config::new(String::from("rUsT"), 
-            String::from("mey"), false, false, false, 
-            String::from(""), false, false, 0, 0).unwrap();
+        let mut config = Config::new(String::from("rUsT"), 
+            String::from("mey"), false).unwrap();
+        config.set_is_regex(false);
+        config.set_is_substitute(false); 
+        config.set_substitute(String::from(""));
+        config.set_show_line_number(false);
+        config.set_recursive(true);
+        config.set_start_matching_at(0);
+        config.set_end_matching_after(0);
         assert_eq!(
             true,
             search_case_insensitive(&config, contents).matched
@@ -129,8 +141,14 @@ mod tests {
 
     #[test]
     fn case_regex_by_line() {
-        let config = Config::new(String::from("e{2}"), String::from("mey"), true, false, false, 
-            String::from("e{2}"), false, false, 0, 0).unwrap();
+        let mut config = Config::new(String::from("e{2}"), String::from("mey"), true).unwrap();
+        config.set_is_regex(false);
+        config.set_is_substitute(false); 
+        config.set_substitute(String::from("e{2}"));
+        config.set_show_line_number(false);
+        config.set_recursive(true);
+        config.set_start_matching_at(0);
+        config.set_end_matching_after(0);
         let line = String::from("Pick three.");
         let matched_line = search_regex_by_line(&config, line);
 
@@ -139,8 +157,15 @@ mod tests {
 
     #[test]
     fn regex_example() {
-        let config = Config::new(String::from("(?P<y>\\d{4})-(?P<m>\\d{2})-(?P<d>\\d{2})"), 
-            String::from("mey"), true, false, false, String::from("$m/$d/$y"), false, false, 0, 0).unwrap();
+        let mut config = Config::new(String::from("(?P<y>\\d{4})-(?P<m>\\d{2})-(?P<d>\\d{2})"), 
+            String::from("mey"), true).unwrap();
+            config.set_is_regex(false);
+            config.set_is_substitute(false); 
+            config.set_substitute(String::from("$m/$d/$y"));
+            config.set_show_line_number(false);
+            config.set_recursive(true);
+            config.set_start_matching_at(0);
+            config.set_end_matching_after(0);
         let line = String::from("2012-03-14, 2013-01-01 and 2014-07-05");
         let after = replace_regex_by_line(&config, line);
         assert_eq!(after.line, "03/14/2012, 01/01/2013 and 07/05/2014");

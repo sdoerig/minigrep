@@ -14,15 +14,8 @@ pub fn get_config() -> Config {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
     let mandatory_params = vec!["f", "p"];
-    let (mut case_sensitive, 
-        mut regex, 
-        mut show_line_number, 
-        mut do_substitution,
-        mut recursiv) = (true, 
-            false, 
-            false, 
-            false,
-            false);
+    
+    let mut case_sensitive  = true;
     let mut opts = Options::new();
     opts.optopt("p", "pattern", "set pattern to find", "PATTERN");
     opts.optopt("s", "substitute", "subsitute pattern with this", "SUBSTITUTE");
@@ -62,22 +55,6 @@ pub fn get_config() -> Config {
         }
     }
 
-    if matches.opt_present("i") {
-        case_sensitive = false;
-    }
-
-    if matches.opt_present("n") {
-        show_line_number = true;
-    } 
-
-    if matches.opt_present("e") {
-        regex = true;
-    }
-
-    if matches.opt_present("r") {
-        recursiv = true;
-    }
-    
     let pattern = match matches.opt_get("p") {
         Ok(m) => { m.unwrap() }
         Err(_f) => {print_usage(&program, &opts);
@@ -92,40 +69,49 @@ pub fn get_config() -> Config {
         
     };
 
-    let mut start_at: usize = 0;
-    if matches.opt_present("a") {
-        start_at = match matches.opt_get("a") {
-            Ok(m) => { m.unwrap() }
-            Err(_f) => {0}
-        };
+    if matches.opt_present("i") {
+        case_sensitive = false;
     }
-
-    let mut end_at: usize = 0;
-    if matches.opt_present("z") {
-        end_at = match matches.opt_get("z") {
-            Ok(m) => { m.unwrap() }
-            Err(_f) => {0}
-        };
-    }
-
-
-    let mut subsitute = String::from("");
-    if matches.opt_present("s") {
-        subsitute = match matches.opt_get("s") {
-            Ok(m) => { do_substitution = true;
-                m.unwrap() }
-            Err(_f) => {do_substitution = false;
-            String::from("")}
-        }
-        
-    };
-
-    Config::new(pattern, file, 
-        case_sensitive, regex, 
-        do_substitution, subsitute, 
-        show_line_number, recursiv,
-        start_at, end_at).unwrap_or_else(|err| {
+    let mut config: Config = Config::new(pattern, file, 
+        case_sensitive).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
-    })
+    });
+    if matches.opt_present("n") {
+        config.set_show_line_number(true);
+    } 
+
+    if matches.opt_present("e") {
+        config.set_is_regex(true);
+    }
+
+    if matches.opt_present("r") {
+        config.set_recursive(true);
+    }
+    
+    if matches.opt_present("a") {
+        config.set_start_matching_at( match matches.opt_get("a") {
+            Ok(m) => { m.unwrap() }
+            Err(_f) => {0}
+        });
+    }
+
+    if matches.opt_present("z") {
+        config.set_end_matching_after(match matches.opt_get("z") {
+            Ok(m) => { m.unwrap() }
+            Err(_f) => {0}
+        });
+    }
+
+    if matches.opt_present("s") {
+        config.set_is_substitute(true);
+        config.set_substitute( match matches.opt_get("s") {
+            Ok(m) => {m.unwrap() }
+            Err(_f) => {String::from("")}
+        });
+        
+    };
+    
+    config
+    
 }
