@@ -67,15 +67,10 @@ impl Config {
         }
 
         pub fn do_match(&self, line_counter: &usize) -> bool {
-            if (self.start_matching_at == 0 && self.end_matching_after == 0) || 
-            (self.start_matching_at > 0 && self.end_matching_after > 0 && 
-                self.start_matching_at <= *line_counter && *line_counter < self.end_matching_after) || 
-                (self.start_matching_at > 0 && self.end_matching_after == 0 && *line_counter >= self.start_matching_at) || 
-                (self.start_matching_at == 0 && self.end_matching_after > 0 && *line_counter < self.end_matching_after) {
-                true
-            } else {
-                false
-            }
+            (self.start_matching_at == 0 && self.end_matching_after == 0) || 
+            (self.start_matching_at <= *line_counter && *line_counter < self.end_matching_after) || 
+            (self.start_matching_at > 0 && self.end_matching_after == 0 && *line_counter >= self.start_matching_at) || 
+            (self.start_matching_at == 0 && self.end_matching_after > 0 && *line_counter < self.end_matching_after) 
         }
 
 
