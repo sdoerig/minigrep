@@ -1,6 +1,7 @@
 use std::fmt;
 
 
+
 pub struct MatchedLine {
     pub matched: bool,
     pub line: String
@@ -44,6 +45,7 @@ impl fmt::Display for PrintableWithFileNameLineNumber<'_> {
         } 
     }
 }
+
 
 
 #[cfg(test)]

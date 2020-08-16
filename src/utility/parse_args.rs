@@ -2,7 +2,7 @@ extern crate getopts;
 use getopts::Options;
 use std::env;
 
-use crate::config::config::Config as Config;
+use crate::store::config::Config as Config;
 use std::process;
 
 pub fn print_usage(program: &str, opts: &Options) {

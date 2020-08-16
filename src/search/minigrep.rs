@@ -1,10 +1,10 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use crate::config::config::Config as Config;
-use crate::structs::structs::PrintableWithFileNameLineNumber as PrintableWithFileNameLineNumber;
-use crate::structs::structs::MatchedLine as MatchedLine;
-use crate::structs::structs::Matched as Matched;
+use crate::store::config::Config as Config;
+use crate::structs::minigrep_structs::PrintableWithFileNameLineNumber  as PrintableWithFileNameLineNumber;
+use crate::structs::minigrep_structs::MatchedLine as MatchedLine;
+use crate::structs::minigrep_structs::Matched as Matched;
 extern crate glob;
 use glob::glob;
 
