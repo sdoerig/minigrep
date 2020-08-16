@@ -1,12 +1,11 @@
 use std::process;
 extern crate getopts;
-mod utility;
-mod store;
 mod search;
+mod store;
 mod structs;
-use search::minigrep::run as run;
+mod utility;
+use search::minigrep::run;
 use utility::parse_args::get_config;
-
 
 fn main() {
     if let Err(e) = run(get_config()) {
