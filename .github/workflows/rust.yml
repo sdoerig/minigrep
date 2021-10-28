@@ -10,7 +10,7 @@ jobs:
       - name: Install latest stable
         uses: actions/checkout@v2
         with:
-            toolchain: stable
+            toolchain: nightly
             override: true
             components: rustfmt, clippy
 
