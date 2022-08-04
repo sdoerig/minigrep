@@ -27,7 +27,7 @@ Options:
 ```
 ## Regex
 
-The Regex is bases on the library [regex](https://crates.io/crates/regex). This means the documented Rexex syntax can be uses. Example: given the file `test_regex.txt` has the content
+The Regex is based on the library [regex](https://crates.io/crates/regex). So Regex syntax can be used as documented there. Example: given the file `test_regex.txt` has the content
 
 ```
 2012-03-14, 2013-01-01 and 2014-07-05
